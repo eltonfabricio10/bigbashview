@@ -41,7 +41,7 @@ from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineDownloadRequest
 from PySide6.QtWebChannel import QWebChannel
 
-from bbv.globaldata import ICON, TITLE, PROCESS, EXTERNAL_LINK
+from bbv.globaldata import TITLE, PROCESS, EXTERNAL_LINK
 
 # Import gettext module for translations
 import gettext
@@ -122,8 +122,7 @@ class Window(QWidget):
         self.web.page().profile().setHttpUserAgent("BigBashView-Agent")
         self.inspector = QWebEngineView()
 
-        # Set window icon and title
-        self.setWindowIcon(QIcon(ICON))
+        # Set window title        
         self.app.setDesktopFileName(PROCESS)
 
         if TITLE:
@@ -282,6 +281,17 @@ class Window(QWidget):
         self.resize(width, height)
         if window_state == "fixed":
             self.setFixedSize(width, height)
+
+    def set_icon(self, icon):
+        # Tentar carregar o ícone do tema do sistema
+        icon_system = QIcon.fromTheme(icon)
+        # Verificar se o ícone carregado é válido
+        if icon_system.isNull():
+            # Se o ícone não for válido, usar um ícone de fallback
+            icon = "bigbashview"
+            
+        #Set window icon
+        self.setWindowIcon(QIcon.fromTheme(icon))
 
     def style(self, colorful):
         # Set the window background color based on the provided argument

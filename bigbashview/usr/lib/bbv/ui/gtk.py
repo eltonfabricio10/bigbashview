@@ -3,7 +3,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("WebKit", "6.0")
 from gi.repository import Gtk, WebKit, Gdk, Gio, GLib
-from bbv.globaldata import ICON, TITLE, EXTERNAL_LINK, PROCESS
+from bbv.globaldata import TITLE, EXTERNAL_LINK, PROCESS
 
 
 class Application(Gtk.Application):
@@ -23,9 +23,6 @@ class Window(Gtk.Window):
         settings.set_enable_developer_extras(True) # Enable Web Inspector
         settings.set_enable_javascript(True)
         self.set_child(self.webview)
-        
-        # Definir o ícone da janela
-        self.set_icon_name("big-logo")
 
         if TITLE:
             self.set_title(TITLE)
@@ -42,7 +39,9 @@ class Window(Gtk.Window):
         # Criar um controlador de eventos para capturar teclas pressionadas
         key_controller = Gtk.EventControllerKey.new()
         self.webview.add_controller(key_controller)
-        key_controller.connect("key-pressed", self.key)       
+        key_controller.connect("key-pressed", self.key)
+
+        self.inspector = None       
 
     def LinkOpener(self, web_view, decision, decision_type):
         """Intercepta navegações para abrir links externos no navegador padrão."""
@@ -59,13 +58,20 @@ class Window(Gtk.Window):
             return True
 
     def key(self, controller, keyval, keycode, state):
+        # Filtra keyvals maiores que 16 bits
+        if keyval > 65535:
+            return
         # Reload the webview when the F5 key is pressed
         if keyval == 65474:  # F5
             self.webview.reload()
         # Show the web inspector when the F12 key is pressed
         if keyval == 65481:  # F12
-            inspector = self.webview.get_inspector()
-            inspector.show()
+            if self.inspector is None:
+                self.inspector = self.webview.get_inspector()
+                self.inspector.show()
+            else:
+                self.inspector.close()
+                self.inspector = None
 
     def add_script(self, webview, event):
         # Add a JavaScript function to the webview that can be called from the loaded webpage
@@ -95,7 +101,7 @@ class Window(Gtk.Window):
     def run(self):
         # Start the Gtk Application
         app = Application()
-        app.run()
+        app.run(None)
 
     def close_window(self, webview):
         # Quit the Gtk Application when the webview is closed
@@ -129,6 +135,11 @@ class Window(Gtk.Window):
         self.set_default_size(width, height)
         if window_state == "fixed":
             self.set_resizable(False)
+
+    def set_icon(self, icon):
+        #Set window icon
+        self.set_default_icon_name("bigbashview")
+        self.set_icon_name(icon)
 
     def style(self, colorful):
         # Set the window and webview background color based on the provided argument

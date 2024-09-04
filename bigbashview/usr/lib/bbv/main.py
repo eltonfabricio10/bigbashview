@@ -124,8 +124,8 @@ class Main:
             '-d', '--directory', default=None,
             help='Work Directory: /path/to/directory')
         parser.add_argument(
-            '-i', '--icon', default=globaldata.ICON,
-            help='Window Icon: /path/to/image')
+            '-i', '--icon', default='bigbashview',
+            help='Window Icon: "filename"')
         parser.add_argument(
             '-n', '--name', default=None,
             help='Window Title: "Title"')
@@ -144,7 +144,8 @@ class Main:
         parser.add_argument(
             '-w', '--window_state', default=None,
             help='''Window state: fullscreen, maximized, fixed,
-              frameless, alwaystop, framelesstop, maximizedframelesstop''')
+              frameless, alwaystop, framelesstop, 
+              maximizedframelesstop''')
         parser.add_argument(
             '-g', '--gpu', action='store_true',
             help='Activate GPU rendering')
@@ -160,28 +161,32 @@ class Main:
             globaldata.EXTERNAL_LINK = True
 
         # Check if the specified directory exists
-        if args.directory and os.path.isdir(args.directory):
-            os.chdir(args.directory)
-            if self.url == '/':
-                # Check for files that autoload with the -d/--directory option
-                files = list(filter(os.path.isfile, os.listdir()))
-                if files:
-                    for file in files:
-                        if file in [
-                            'index.sh'    , 'main.sh'    , 'index.run'    , 'main.run' ,
-                            'index.htm'   , 'main.htm'   , 'index.html'   , 'main.html',
-                            'index.sh.htm', 'main.sh.htm', 'index.sh.html', 'main.sh.html'
-                        ]:
-                            self.url = f'./{file}'
-                            break
+        if args.directory:
+            if os.path.isdir(args.directory):
+                os.chdir(args.directory)
+                if self.url == '/':
+                    # Check for files that autoload with the -d/--directory option
+                    files = list(filter(os.path.isfile, os.listdir()))
+                    if files:
+                        for file in files:
+                            if file in [
+                                'index.sh'    , 'main.sh'    , 'index.run'    , 'main.run' ,
+                                'index.htm'   , 'main.htm'   , 'index.html'   , 'main.html',
+                                'index.sh.htm', 'main.sh.htm', 'index.sh.html', 'main.sh.html'
+                            ]:
+                                self.url = f'./{file}'
+                                break
+            else:
+                parser.print_help()
+                sys.exit(1)
 
         # Set the global window title if specified
         if args.name:
             globaldata.TITLE = args.name
 
-        # Set the global window icon if the file exists
-        if os.path.exists(args.icon):
-            globaldata.ICON = args.icon
+        # Set the global window icon if the filename exists on system
+        if args.icon:
+            self.icon = args.icon
 
         # Get the process name if specified
         if args.process:
@@ -202,9 +207,9 @@ class Main:
 
         min_geom = args.minsize.split('x')
         try:
-            min_width, min_height = map(int, min_geom)
-            self.min_width = min_width
-            self.min_height = min_height
+            min_width, min_height = min_geom
+            self.min_width = int(min_width)
+            self.min_height = int(min_height)
         except ValueError:
             parser.print_help()
             sys.exit(1)
@@ -306,6 +311,7 @@ class Main:
         self.window.style(self.color)
         self.window.viewer(self.window_state)
         self.window.load_url(self.url)
+        self.window.set_icon(self.icon)
         # Run the window
         self.window.run()
         # Stop the server if started
