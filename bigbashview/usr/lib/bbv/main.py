@@ -275,14 +275,13 @@ class Main:
                 print('Please install PySide6')
                 sys.exit(1)
 
-            flags = ('--ignore-gpu-blocklist --disable-logging --no-sandbox --single-process  --disable-gpu-sandbox --in-process-gpu '
+            flags = ('--disable-logging --no-sandbox --single-process  --disable-gpu-sandbox --in-process-gpu '
                     '--autoplay-policy=no-user-gesture-required --disable-back-forward-cache  --disable-breakpad '
-                    '--aggressive-cache-discard --disable-features=BackForwardCache,CacheCodeOnIdle,ConsumeCodeCacheOffThread')
+                    '--aggressive-cache-discard --disable-features=BackForwardCache,CacheCodeOnIdle,ConsumeCodeCacheOffThread,WebRtcAllowInputVolumeAdjustment')
             if args.gpu:
                 flags += (' --enable-gpu-rasterization')
             else:
-                flags += (' --disable-webgl --disable-accelerated-video-decode --disable-accelerated-video-encode '
-                        '--num-raster-threads=0')
+                flags += (' --disable-webgl --disable-accelerated-video-decode --disable-accelerated-video-encode --num-raster-threads=0')
 
             # Verifica se a variável de ambiente QTWEBENGINE_CHROMIUM_FLAGS está vazia ou não definida
             if not os.environ.get('QTWEBENGINE_CHROMIUM_FLAGS', ''):
