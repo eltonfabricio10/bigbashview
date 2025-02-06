@@ -143,6 +143,10 @@ class Window(QWidget):
         self.key_f12 = QShortcut(QKeySequence(Qt.Key_F12), self.web)
         self.key_f12.activated.connect(self.devpage)
         self.web.page().profile().downloadRequested.connect(self.onDownloadRequested)
+        
+        # Meta+Alt+S Keyboard shortcut for run orca
+        self.key_meta_alt_s = QShortcut(QKeySequence("Meta+Alt+S"), self)
+        self.key_meta_alt_s.activated.connect(self.run_orca)
 
         # Set up the layout and splitter for the main window
         self.hbox = QHBoxLayout(self)
@@ -158,6 +162,22 @@ class Window(QWidget):
         self.channel = QWebChannel()
         self.web.page().setWebChannel(self.channel)
         self.channel.registerObject("windowControl", self.control)
+
+    def run_orca(self):
+        try:
+            # Use pgrep to check if there are any running processes named 'orca'
+            process_check = os.system("pgrep orca > /dev/null 2>&1")
+            
+            if process_check == 0:  # If pgrep returns 0, the Orca process is running
+                os.system("bigbashview-orca --disable &")
+                print("Orca process terminated.")
+            else:
+                os.system("bigbashview-orca --enable &")  # Start the Orca process in the background
+                print("Orca process started.")
+        except Exception as e:
+            # Handle any exceptions that occur while managing the Orca process
+            print(f"Error handling the Orca process: {e}")
+
 
     def changeEvent(self, event):
         super().changeEvent(event)
@@ -299,7 +319,7 @@ class Window(QWidget):
             self.web.page().setBackgroundColor(QColor.fromRgbF(0, 0, 0, 1))
         elif colorful == "transparent":
             self.setAttribute(Qt.WA_TranslucentBackground)
-            self.web.page().setBackgroundColor(QColor.fromRgbF(0, 0, 0, 0.01))
+            self.web.page().setBackgroundColor(QColor.fromRgbF(0, 0, 0, 0))
             self.setStyleSheet("background:transparent;")
         elif os.environ.get('XDG_CURRENT_DESKTOP') == 'KDE':
             rgb = os.popen("kreadconfig5 --group WM --key activeBackground").read().split(',')
